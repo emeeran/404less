@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404less - Broken Link Scanner</title>
+    <!-- @spec FEAT-001/AC-008 - Minimalist UI renders quickly -->
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>404less</h1>
+            <p class="tagline">Find broken links before your users do</p>
+        </header>
+
+        <main>
+            <!-- @spec FEAT-001/AC-001 - URL input field -->
+            <section id="scan-form" class="card">
+                <form id="url-form">
+                    <div class="form-group">
+                        <label for="url">Website URL</label>
+                        <input
+                            type="url"
+                            id="url"
+                            name="url"
+                            placeholder="https://example.com"
+                            required
+                            pattern="https?://.*"
+                            title="Please enter a valid URL starting with http:// or https://"
+                        >
+                        <!-- @spec FEAT-001/EC-006 - Inline error message -->
+                        <span id="url-error" class="error-message"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="depth">Crawl Depth</label>
+                            <select id="depth" name="depth">
+                                <option value="1">1 (root only)</option>
+                                <option value="2">2</option>
+                                <option value="3" selected>3 (default)</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10 (maximum)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="respect-robots" checked>
+                                Respect robots.txt
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="scan-btn" class="btn-primary">
+                            Start Scan
+                        </button>
+                        <button type="button" id="stop-btn" class="btn-danger" disabled>
+                            Stop Scan
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- @spec FEAT-001/AC-002 - Real-time scan progress -->
+            <section id="progress-section" class="card hidden">
+                <h2>Scan Progress</h2>
+                <div class="progress-stats">
+                    <div class="stat">
+                        <span class="stat-label">Total Links</span>
+                        <span id="total-links" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Checked</span>
+                        <span id="checked-links" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Broken</span>
+                        <span id="broken-links" class="stat-value broken">0</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <p id="current-url" class="current-url">Starting scan...</p>
+            </section>
+
+            <!-- @spec FEAT-001/AC-006 - Export scan results -->
+            <section id="results-section" class="card hidden">
+                <div class="results-header">
+                    <h2>Scan Results</h2>
+                    <div class="export-actions">
+                        <button id="export-json" class="btn-secondary">Export JSON</button>
+                        <button id="export-csv" class="btn-secondary">Export CSV</button>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <label for="status-filter">Filter:</label>
+                    <select id="status-filter">
+                        <option value="">All</option>
+                        <option value="ok">OK</option>
+                        <option value="broken">Broken</option>
+                        <option value="skipped">Skipped</option>
+                    </select>
+                </div>
+
+                <div id="links-container" class="links-list">
+                    <!-- Links will be populated here -->
+                </div>
+
+                <div id="pagination" class="pagination hidden">
+                    <button id="prev-page" class="btn-secondary" disabled>Previous</button>
+                    <span id="page-info"></span>
+                    <button id="next-page" class="btn-secondary" disabled>Next</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>404less v0.1.0 &mdash; <a href="https://github.com/user/404less">GitHub</a></p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

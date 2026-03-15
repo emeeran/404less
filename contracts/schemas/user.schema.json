@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "user.schema.json",
+  "title": "User",
+  "description": "User entity schema. @spec FEAT-001/DM-001",
+  "type": "object",
+  "required": ["id", "email", "password_hash", "email_verified", "created_at", "updated_at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "maxLength": 255,
+      "description": "User's email address"
+    },
+    "password_hash": {
+      "type": "string",
+      "description": "Bcrypt hashed password"
+    },
+    "email_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether email has been verified"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Account creation timestamp (UTC)"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update timestamp (UTC)"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/shared/email/service.py
+# hypothesis_version: 6.151.9
+
+[587, '\n[HTML Body]:', '-', '587', '=', 'BASE_URL', 'EMAIL_BACKEND', 'EMAIL_FROM', 'Reset your password', 'SMTP_HOST', 'SMTP_PASSWORD', 'SMTP_PORT', 'SMTP_USERNAME', 'SMTP_USE_TLS', 'console', 'localhost', 'noreply@example.com', 'password_reset.txt', 'smtp', 'true', 'verification.html', 'verification.txt']

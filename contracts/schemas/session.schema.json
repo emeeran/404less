@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "session.schema.json",
+  "title": "Session",
+  "description": "User session entity. @spec FEAT-002/DM-001",
+  "type": "object",
+  "required": ["id", "user_id", "refresh_token_hash", "created_at", "expires_at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier"
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Foreign key to User"
+    },
+    "refresh_token_hash": {
+      "type": "string",
+      "description": "Hashed refresh token"
+    },
+    "user_agent": {
+      "type": ["string", "null"],
+      "description": "Browser/client user agent string"
+    },
+    "ip_address": {
+      "type": ["string", "null"],
+      "format": "ipv4",
+      "description": "Client IP address"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Session creation timestamp"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Session expiration timestamp (7 days from creation)"
+    },
+    "revoked_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "When session was revoked (null if active)"
+    }
+  }
+}

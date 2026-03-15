@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/auth/password_reset/routes.py
+# hypothesis_version: 6.151.9
+
+['/auth/password-reset', '/confirm', '/request', '3/hour', 'Auth', 'details', 'error', 'invalid_input', 'invalid_token', 'message', 'password_reuse']

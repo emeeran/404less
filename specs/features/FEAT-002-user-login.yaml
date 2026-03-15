@@ -1,0 +1,206 @@
+spec:
+  id: FEAT-002
+  name: User Login
+  version: 1.0.0
+  status: approved
+  author: @team-auth
+  created: 2024-01-10
+  updated: 2024-01-12
+  approved_by: @tech-lead
+  approved_date: 2024-01-12
+
+  description: |
+    Allow registered users with verified emails to authenticate
+    using their email and password. Successful authentication
+    returns a session token for subsequent API calls.
+
+  user_stories:
+    - id: US-001
+      story: |
+        As a registered user with verified email,
+        I want to log in with my email and password,
+        So that I can access my account and protected features.
+
+  acceptance_criteria:
+    - id: AC-001
+      description: Successful login
+      given: User exists with verified email and correct password
+      when: They submit login credentials
+      then: Session token is returned and login event is logged
+
+    - id: AC-002
+      description: Invalid credentials
+      given: User submits incorrect password
+      when: They attempt to login
+      then: Generic "invalid credentials" error is shown (no email enumeration)
+
+    - id: AC-003
+      description: Unverified email
+      given: User exists but email not verified
+      when: They attempt to login
+      then: Error prompts user to verify email first
+
+    - id: AC-004
+      description: Account lockout
+      given: User has 5 failed login attempts
+      when: They attempt to login again
+      then: Account is temporarily locked for 15 minutes
+
+    - id: AC-005
+      description: Session expiration
+      given: User has valid session
+      when: Session is older than configured timeout
+      then: Session is invalidated, user must re-login
+
+  edge_cases:
+    - id: EC-001
+      scenario: Login with non-existent email
+      expected: Same error as invalid password (no enumeration)
+
+    - id: EC-002
+      scenario: SQL injection in email field
+      expected: Sanitize input, login fails safely
+
+    - id: EC-003
+      scenario: Concurrent logins from different devices
+      expected: Both sessions valid (configurable per tenant)
+
+    - id: EC-004
+      scenario: Login during account lockout
+      expected: Increment failed attempts, extend lockout
+
+  constraints:
+    - id: C-001
+      type: security
+      description: Failed attempts tracked per email (not per IP)
+
+    - id: C-002
+      type: security
+      description: Account locked after 5 failed attempts for 15 minutes
+
+    - id: C-003
+      type: security
+      description: Session token is JWT with 1-hour expiry
+
+    - id: C-004
+      type: security
+      description: Refresh token with 7-day expiry
+
+    - id: C-005
+      type: rate_limit
+      description: Max 20 login attempts per IP per minute
+
+    - id: C-006
+      type: performance
+      description: Login response within 200ms
+
+  api_endpoints:
+    - id: API-001
+      method: POST
+      path: /auth/login
+      request:
+        content-type: application/json
+        body:
+          email: string (required)
+          password: string (required)
+      response:
+        success:
+          status: 200
+          body:
+            access_token: string (JWT)
+            refresh_token: string
+            token_type: "Bearer"
+            expires_in: 3600
+            user:
+              id: string
+              email: string
+        errors:
+          - status: 401
+            body:
+              error: "invalid_credentials"
+              message: "Invalid email or password"
+          - status: 403
+            body:
+              error: "email_not_verified"
+              message: "Please verify your email before logging in"
+          - status: 423
+            body:
+              error: "account_locked"
+              message: "Account temporarily locked. Try again in 15 minutes."
+
+    - id: API-002
+      method: POST
+      path: /auth/refresh
+      request:
+        content-type: application/json
+        body:
+          refresh_token: string (required)
+      response:
+        success:
+          status: 200
+          body:
+            access_token: string
+            token_type: "Bearer"
+            expires_in: 3600
+        errors:
+          - status: 401
+            body:
+              error: "invalid_refresh_token"
+
+    - id: API-003
+      method: POST
+      path: /auth/logout
+      headers:
+        Authorization: Bearer <token>
+      response:
+        success:
+          status: 200
+          body:
+            message: "Logged out successfully"
+
+  data_models:
+    - id: DM-001
+      name: Session
+      fields:
+        id: UUID (primary key)
+        user_id: UUID (foreign key)
+        refresh_token_hash: string
+        user_agent: string
+        ip_address: string
+        created_at: timestamp
+        expires_at: timestamp
+        revoked_at: timestamp (nullable)
+      indexes:
+        - user_id
+        - refresh_token_hash (unique)
+        - expires_at
+
+    - id: DM-002
+      name: LoginAttempt
+      fields:
+        id: UUID (primary key)
+        email: string (indexed)
+        ip_address: string
+        success: boolean
+        created_at: timestamp
+      indexes:
+        - email
+        - created_at
+
+  dependencies:
+    - FEAT-001 (User Registration - User model required)
+
+  out_of_scope:
+    - Remember me functionality
+    - Login history UI
+    - Device management
+
+  notes:
+    - Consider adding suspicious login detection
+    - May need to support multiple active sessions per user
+
+  changelog:
+    - version: 1.0.0
+      date: 2024-01-12
+      author: @team-auth
+      changes: Initial spec approved

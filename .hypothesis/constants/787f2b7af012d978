@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/shared/email/__init__.py
+# hypothesis_version: 6.151.9
+
+['EmailService', 'get_email_service', 'render_template', 'send_email']

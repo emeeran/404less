@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "login_attempt.schema.json",
+  "title": "LoginAttempt",
+  "description": "Login attempt record for security tracking. @spec FEAT-002/DM-002",
+  "type": "object",
+  "required": ["id", "email", "success", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "maxLength": 255,
+      "description": "Email used in login attempt"
+    },
+    "ip_address": {
+      "type": ["string", "null"],
+      "description": "Client IP address"
+    },
+    "success": {
+      "type": "boolean",
+      "description": "Whether login was successful"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Attempt timestamp"
+    }
+  }
+}

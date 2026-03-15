@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/scanner/service.py
+# hypothesis_version: 6.151.9
+
+[100, '404less/0.1.0', 'Scan not found', 'application/json', 'broken', 'broken_links', 'checked_at', 'checked_links', 'completed', 'completed_at', 'created_at', 'csv', 'current_url', 'depth', 'error', 'http://', 'https://', 'id', 'invalid_format', 'invalid_url', 'json', 'links', 'not_found', 'page', 'pagination', 'parent_url', 'pending', 'per_page', 'running', 'scan', 'status', 'status_code', 'stopped', 'text/csv', 'total', 'total_links', 'total_pages', 'url', 'utf-8']

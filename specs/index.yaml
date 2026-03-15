@@ -1,0 +1,65 @@
+# SDD Spec Registry
+# Tracks all specs and their current versions
+
+project: sdd-template
+version: 0.1.0
+last_updated: 2024-01-15
+
+# Feature Status Legend:
+# draft      - Spec being written
+# review     - Spec under review
+# approved   - Spec approved, ready for implementation
+# in_progress - Implementation in progress
+# implemented - Implementation complete
+# released   - Deployed to production
+
+features:
+  FEAT-001:
+    name: User Registration
+    version: 1.0.0
+    status: approved
+    file: specs/features/FEAT-001-user-registration.yaml
+    owner: @team-auth
+
+  FEAT-002:
+    name: User Login
+    version: 1.0.0
+    status: approved
+    file: specs/features/FEAT-002-user-login.yaml
+    owner: @team-auth
+
+  FEAT-003:
+    name: Password Reset
+    version: 1.0.0
+    status: draft
+    file: specs/features/FEAT-003-password-reset.yaml
+    owner: @team-auth
+
+  FEAT-004:
+    name: User Profile
+    version: 0.1.0
+    status: draft
+    file: specs/features/FEAT-004-user-profile.yaml
+    owner: @team-users
+
+# Dependency Graph
+# FEAT-002 depends on FEAT-001 (users must exist to login)
+# FEAT-003 depends on FEAT-001 (users must exist to reset password)
+# FEAT-004 depends on FEAT-001 (profile requires registered user)
+
+dependencies:
+  FEAT-001: []
+  FEAT-002: [FEAT-001]
+  FEAT-003: [FEAT-001]
+  FEAT-004: [FEAT-001]
+
+# Metrics
+metrics:
+  total_features: 4
+  by_status:
+    draft: 2
+    review: 0
+    approved: 2
+    in_progress: 0
+    implemented: 0
+    released: 0

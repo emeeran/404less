@@ -1,0 +1,96 @@
+spec:
+  id: FEAT-001
+  name: "404less"
+  version: 0.1.0
+  status: draft
+  author: @your-name
+  created: YYYY-MM-DD
+  updated: YYYY-MM-DD
+  approved_by: null
+  approved_date: null
+
+  description: |
+    [Detailed description of the feature.
+    Explain WHAT it does and WHY it's needed.
+    Include context that helps understand the feature.]
+
+  user_stories:
+    - id: US-001
+      story: |
+        As a [type of user],
+        I want to [perform some action],
+        So that [achieve some goal/benefit].
+
+  acceptance_criteria:
+    - id: AC-001
+      description: "[Short description]"
+      given: [initial context/preconditions]
+      when: [action taken]
+      then: [expected outcome]
+
+    - id: AC-002
+      description: "[Short description]"
+      given: [initial context/preconditions]
+      when: [action taken]
+      then: [expected outcome]
+
+  edge_cases:
+    - id: EC-001
+      scenario: "[Describe the edge case scenario]"
+      expected: "[Expected behavior]"
+
+    - id: EC-002
+      scenario: "[Describe the edge case scenario]"
+      expected: "[Expected behavior]"
+
+  constraints:
+    - id: C-001
+      type: security | performance | rate_limit | compliance | business
+      description: "[Describe the constraint]"
+
+  api_endpoints:
+    - id: API-001
+      method: GET | POST | PUT | DELETE | PATCH
+      path: /resource/path
+      request:
+        headers:
+          Authorization: Bearer <token> (optional)
+        query_params:
+          param_name: type (required|optional, description)
+        body:
+          field_name: type (required|optional, constraints)
+      response:
+        success:
+          status: 200 | 201 | etc
+          body:
+            field_name: type
+        errors:
+          - status: 400 | 401 | 403 | 404 | 500
+            body:
+              error: "error_code"
+              message: "Human readable message"
+
+  data_models:
+    - id: DM-001
+      name: ModelName
+      fields:
+        id: type (constraints)
+        field_name: type (constraints)
+      indexes:
+        - field_name (unique?)
+        - composite_index: [field1, field2]
+
+  dependencies:
+    - FEAT-XXX (description of dependency)
+
+  out_of_scope:
+    - [Things explicitly NOT included in this feature]
+
+  notes:
+    - [Additional context, assumptions, or considerations]
+
+  changelog:
+    - version: 0.1.0
+      date: YYYY-MM-DD
+      author: @your-name
+      changes: Initial draft

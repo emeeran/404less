@@ -1,0 +1,379 @@
+spec:
+  id: FEAT-001
+  name: "404less"
+  version: 0.1.0
+  status: draft
+  author: @em
+  created: 2026-03-14
+  updated: 2026-03-14
+  approved_by: null
+  approved_date: null
+
+  description: |
+    A lightweight web application that recursively scans websites for broken links
+    (HTTP 4xx/5xx responses, timeouts, DNS failures) up to a configurable depth
+    (maximum 10). Results are displayed in a minimalist UI (single-page app < 50KB
+    gzipped, < 5 UI components) with real-time updates via Server-Sent Events (SSE)
+    showing scan progress, discovered links, and final report with export options.
+
+    The scanner respects robots.txt, implements rate limiting (5 concurrent requests,
+    100ms minimum delay), and provides visual feedback within 100ms of state changes.
+    Designed for developers, QA engineers, and content managers who need to validate
+    site integrity.
+
+  user_stories:
+    - id: US-001
+      story: |
+        As a web developer,
+        I want to scan my site for broken links before deployment,
+        So that I can fix issues before users encounter them.
+
+    - id: US-002
+      story: |
+        As a content manager,
+        I want to see real-time progress while links are being checked,
+        So that I know the scan is working and can estimate completion time.
+
+    - id: US-003
+      story: |
+        As a QA engineer,
+        I want to export scan results in JSON or CSV format,
+        So that I can integrate findings into reports or issue trackers.
+
+    - id: US-004
+      story: |
+        As a site owner,
+        I want to limit crawl depth to avoid scanning external sites indefinitely,
+        So that scans complete within 5000 pages and stay within my domain.
+
+  acceptance_criteria:
+    - id: AC-001
+      description: "Start scan with URL input"
+      given: The user is on the homepage with an empty URL input field
+      when: The user enters a valid URL and clicks "Scan"
+      then: A new scan is initiated, the UI shows progress, and links start appearing
+
+    - id: AC-002
+      description: "Display real-time scan progress"
+      given: A scan is in progress
+      when: Links are being checked
+      then: The UI displays: total links found, links checked, broken links count, and current URL being checked
+
+    - id: AC-003
+      description: "Recursive depth limiting"
+      given: A scan is configured with depth N (1-10)
+      when: The crawler follows links
+      then: Links are followed recursively up to N levels from the root URL, no deeper
+
+    - id: AC-004
+      description: "Identify broken links"
+      given: The scanner encounters a URL
+      when: The URL returns HTTP 4xx, 5xx, times out, or DNS fails
+      then: The link is marked as broken with status code and error reason
+
+    - id: AC-005
+      description: "Same-domain restriction"
+      given: A scan is in progress on domain example.com
+      when: An external link (different domain) is found
+      then: The external link is checked but NOT crawled further (no recursion on external domains)
+
+    - id: AC-006
+      description: "Export scan results"
+      given: A scan has completed with results displayed
+      when: The user clicks "Export JSON" or "Export CSV"
+      then: A file is downloaded containing all discovered links with their status
+
+    - id: AC-007
+      description: "Stop in-progress scan"
+      given: A scan is in progress
+      when: The user clicks "Stop"
+      then: The scan halts immediately and partial results are preserved and displayed
+
+    - id: AC-008
+      description: "Minimalist UI renders quickly"
+      given: The application loads
+      when: Any user accesses the page
+      then: The initial page renders in under 500ms with no JavaScript blocking
+
+  edge_cases:
+    - id: EC-001
+      scenario: "URL redirects multiple times"
+      expected: "Follow redirects up to 10 hops; mark as broken if redirect loop detected or hops exceeded"
+
+    - id: EC-002
+      scenario: "Page contains thousands of links"
+      expected: "Process in batches of 50; continue scanning without UI freeze; show pagination in results"
+
+    - id: EC-003
+      scenario: "robots.txt disallows crawling"
+      expected: "Display warning but allow user to proceed; respect robots.txt by default with override option"
+
+    - id: EC-004
+      scenario: "Same URL appears multiple times on a page"
+      expected: "Deduplicate URLs; only check each unique URL once per scan"
+
+    - id: EC-005
+      scenario: "Server rate-limits or blocks the scanner"
+      expected: "Implement exponential backoff; mark remaining URLs as 'skipped' if blocked after 3 retries"
+
+    - id: EC-006
+      scenario: "Invalid URL format entered"
+      expected: "Validate input; show inline error message 'Please enter a valid URL starting with http:// or https://'"
+
+    - id: EC-007
+      scenario: "Scan URL is a 404 itself"
+      expected: "Immediately report the root URL as broken; do not start recursive scan"
+
+    - id: EC-008
+      scenario: "Depth set to 0 or negative"
+      expected: "Treat as depth 1 (check root URL only); clamp negative values to 1"
+
+    - id: EC-009
+      scenario: "Non-HTTP URL schemes encountered (mailto:, tel:, javascript:, ftp:, file:)"
+      expected: "Skip these URLs entirely; do not check or include in results; log as 'skipped: unsupported scheme'"
+
+    - id: EC-010
+      scenario: "Network-level errors (SSL certificate errors, connection refused, DNS timeout vs HTTP timeout)"
+      expected: "Distinguish error types: SSL errors marked as 'ssl_error', connection refused as 'connection_refused', DNS timeout as 'dns_timeout', HTTP timeout (after 30s) as 'timeout'; each with specific error code in response"
+
+  constraints:
+    - id: C-001
+      type: rate_limit
+      description: "Maximum 5 concurrent HTTP requests; minimum 100ms delay between requests to same domain"
+
+    - id: C-002
+      type: performance
+      description: "Scan results must update in real-time via WebSocket/SSE without polling"
+
+    - id: C-003
+      type: performance
+      description: "UI interactions must respond within 100ms; no main thread blocking > 50ms"
+
+    - id: C-004
+      type: security
+      description: "Sanitize all URLs before logging/display to prevent Cross-Site Scripting (XSS) via malicious URL parameters"
+
+    - id: C-005
+      type: business
+      description: "Maximum crawl depth is 10; user cannot configure higher to prevent runaway scans"
+
+    - id: C-006
+      type: compliance
+      description: "Scanner must identify itself via User-Agent header with contact/info link"
+
+  api_endpoints:
+    - id: API-001
+      method: POST
+      path: /api/scans
+      request:
+        headers:
+          Content-Type: application/json
+        body:
+          url: string (required, must be valid http/https URL)
+          depth: integer (optional, 1-10, default: 3)
+          respect_robots: boolean (optional, default: true)
+          user_agent: string (optional, custom user-agent suffix)
+      response:
+        success:
+          status: 201
+          body:
+            scan_id: string (UUID)
+            status: "pending"
+            url: string
+            depth: integer
+            created_at: string (ISO 8601)
+        errors:
+          - status: 400
+            body:
+              error: "invalid_url"
+              message: "URL must be a valid http or https URL"
+          - status: 400
+            body:
+              error: "invalid_depth"
+              message: "Depth must be between 1 and 10"
+
+    - id: API-002
+      method: GET
+      path: /api/scans/{scan_id}
+      request:
+        headers: {}
+        query_params: {}
+      response:
+        success:
+          status: 200
+          body:
+            scan_id: string
+            url: string
+            depth: integer
+            status: "pending" | "running" | "completed" | "stopped" | "failed"
+            total_links: integer
+            checked_links: integer
+            broken_links: integer
+            started_at: string (ISO 8601)
+            completed_at: string (ISO 8601, nullable)
+        errors:
+          - status: 404
+            body:
+              error: "not_found"
+              message: "Scan not found"
+
+    - id: API-003
+      method: GET
+      path: /api/scans/{scan_id}/links
+      request:
+        headers: {}
+        query_params:
+          status: string (optional, filter: "ok" | "broken" | "skipped")
+          page: integer (optional, default: 1)
+          per_page: integer (optional, default: 50, max: 100)
+      response:
+        success:
+          status: 200
+          body:
+            links:
+              - url: string
+                status: "ok" | "broken" | "skipped"
+                status_code: integer (nullable)
+                error: string (nullable)
+                depth: integer
+                parent_url: string (nullable)
+                checked_at: string (ISO 8601)
+            pagination:
+              page: integer
+              per_page: integer
+              total: integer
+              total_pages: integer
+        errors:
+          - status: 404
+            body:
+              error: "not_found"
+              message: "Scan not found"
+
+    - id: API-004
+      method: DELETE
+      path: /api/scans/{scan_id}
+      request:
+        headers: {}
+      response:
+        success:
+          status: 200
+          body:
+            scan_id: string
+            status: "stopped"
+        errors:
+          - status: 404
+            body:
+              error: "not_found"
+              message: "Scan not found"
+
+    - id: API-005
+      method: GET
+      path: /api/scans/{scan_id}/export
+      request:
+        headers: {}
+        query_params:
+          format: string (required, "json" | "csv")
+      response:
+        success:
+          status: 200
+          headers:
+            Content-Disposition: attachment; filename="scan-{scan_id}.{format}"
+          body: File content (JSON or CSV)
+        errors:
+          - status: 400
+            body:
+              error: "invalid_format"
+              message: "Format must be 'json' or 'csv'"
+          - status: 404
+            body:
+              error: "not_found"
+              message: "Scan not found"
+
+    - id: API-006
+      method: GET
+      path: /api/scans/{scan_id}/stream
+      description: "Server-Sent Events endpoint for real-time scan updates"
+      request:
+        headers:
+          Accept: text/event-stream
+      response:
+        success:
+          status: 200
+          headers:
+            Content-Type: text/event-stream
+          body: |
+            event: progress
+            data: {"checked_links": 42, "total_links": 100, "broken_links": 3, "current_url": "https://..."}
+
+            event: link_checked
+            data: {"url": "https://...", "status": "broken", "status_code": 404, "depth": 2}
+
+            event: completed
+            data: {"total_links": 100, "broken_links": 5}
+
+  data_models:
+    - id: DM-001
+      name: Scan
+      fields:
+        id: UUID (primary key, auto-generated)
+        url: string (required, max 2048 chars, validated URL)
+        depth: integer (required, 1-10)
+        status: enum (pending, running, completed, stopped, failed)
+        respect_robots: boolean (default: true)
+        user_agent: string (max 256 chars)
+        total_links: integer (default: 0)
+        checked_links: integer (default: 0)
+        broken_links: integer (default: 0)
+        started_at: timestamp (nullable)
+        completed_at: timestamp (nullable)
+        created_at: timestamp (auto-generated)
+        error_message: text (nullable)
+      indexes:
+        - status
+        - created_at
+
+    - id: DM-002
+      name: Link
+      fields:
+        id: UUID (primary key, auto-generated)
+        scan_id: UUID (foreign key to Scan, required)
+        url: string (required, max 2048 chars)
+        status: enum (pending, ok, broken, skipped)
+        status_code: integer (nullable)
+        error: string (nullable, max 512 chars)
+        depth: integer (required)
+        parent_url: string (nullable, max 2048 chars)
+        checked_at: timestamp (nullable)
+        created_at: timestamp (auto-generated)
+      indexes:
+        - scan_id
+        - composite_index: [scan_id, status]
+        - composite_index: [scan_id, depth]
+
+  dependencies: []
+
+  out_of_scope:
+    - Authentication and user accounts (anonymous usage only)
+    - Scheduled/recurring scans
+    - Email notifications for completed scans
+    - Historical scan comparison or diff reports
+    - Scanning authenticated/behind-login pages
+    - JavaScript rendering (no headless browser, HTTP only)
+    - Mobile native applications (web only)
+    - Multi-site scanning in a single scan job
+
+  notes:
+    - Use async HTTP client for concurrent requests (aiohttp/httpx for Python, fetch/axios for Node.js)
+    - Server-Sent Events (SSE) preferred over polling for real-time updates
+    - UI framework: vanilla JS or lightweight library (< 10KB) to maintain minimal bundle size
+    - Consider SQLite for storage (lightweight, sufficient for single-user usage)
+    - Use robots.txt parsing library appropriate to chosen tech stack
+    - User-Agent format: "404less/0.1.0 (+https://github.com/user/404less)"
+    - HTTP request timeout: 30 seconds per request
+    - Redirect limit: 10 hops before marking as broken
+
+  changelog:
+    - version: 0.1.0
+      date: 2026-03-14
+      author: @meeran
+      changes: Initial draft specification

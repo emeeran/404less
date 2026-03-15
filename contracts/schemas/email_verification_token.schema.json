@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "email_verification_token.schema.json",
+  "title": "EmailVerificationToken",
+  "description": "Email verification token entity. @spec FEAT-001/DM-002",
+  "type": "object",
+  "required": ["id", "user_id", "token", "expires_at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier"
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Foreign key to User"
+    },
+    "token": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Crypto-random token (32 bytes, hex encoded)"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Token expiration timestamp (24 hours from creation)"
+    },
+    "used_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "When token was used (null if unused)"
+    }
+  }
+}

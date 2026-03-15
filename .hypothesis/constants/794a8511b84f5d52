@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/scanner/crawler.py
+# hypothesis_version: 6.151.9
+
+[0.1, 100, 200, 400, 'User-Agent', '[<>"\\\']', 'a', 'area', 'broken', 'broken_links', 'certificate', 'checked_links', 'connection_refused', 'current_url', 'data:', 'depth', 'dns_timeout', 'embed', 'error', 'file:', 'ftp:', 'href', 'http', 'https', 'iframe', 'img', 'javascript:', 'link', 'mailto:', 'ok', 'parent_url', 'redirect_loop', 'scan_stopped', 'script', 'skipped', 'source', 'src', 'ssl', 'ssl_error', 'status', 'status_code', 'tel:', 'timeout', 'total_links', 'track', 'url']

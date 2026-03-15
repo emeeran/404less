@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/auth/login/routes.py
+# hypothesis_version: 6.151.9
+
+['/auth', '/login', '/logout', '/refresh', '20/minute', 'Auth', 'account_locked', 'email_not_verified', 'error', 'invalid_credentials', 'message']

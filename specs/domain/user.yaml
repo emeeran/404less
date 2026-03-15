@@ -1,0 +1,95 @@
+# Domain Model: User
+# Defines the User entity and its invariants
+
+entity:
+  name: User
+  description: |
+    A registered user of the application. Users can authenticate
+    and access protected resources based on their permissions.
+
+  attributes:
+    id:
+      type: UUID
+      description: Unique identifier
+      constraints:
+        - Auto-generated on creation
+        - Immutable
+
+    email:
+      type: string
+      description: User's email address
+      constraints:
+        - Unique across all users
+        - Max 255 characters
+        - Valid email format
+        - Case-insensitive for uniqueness
+        - Trimmed of whitespace
+
+    password_hash:
+      type: string
+      description: Hashed password using bcrypt
+      constraints:
+        - Never expose in API responses
+        - Bcrypt with cost factor 12
+        - Never log or store plaintext
+
+    email_verified:
+      type: boolean
+      description: Whether email has been verified
+      constraints:
+        - Default false
+        - Set true only via verification flow
+
+    created_at:
+      type: timestamp
+      description: Account creation timestamp
+      constraints:
+        - Auto-set on creation
+        - UTC timezone
+
+    updated_at:
+      type: timestamp
+      description: Last update timestamp
+      constraints:
+        - Auto-update on any modification
+        - UTC timezone
+
+  invariants:
+    - INV-001: Email must be unique
+    - INV-002: Password hash must never be null for active users
+    - INV-003: Email must be verified before login (configurable)
+    - INV-004: Created_at <= Updated_at
+
+  lifecycle:
+    states:
+      - unverified (initial)
+      - active
+      - suspended
+      - deleted
+
+    transitions:
+      - from: unverified
+        to: active
+        trigger: email_verification
+      - from: active
+        to: suspended
+        trigger: admin_action
+      - from: active
+        to: deleted
+        trigger: user_request | admin_action
+
+  relationships:
+    - entity: Session
+      type: one-to-many
+      description: User has many sessions
+    - entity: EmailVerificationToken
+      type: one-to-many
+      description: User has many verification tokens
+    - entity: PasswordResetToken
+      type: one-to-many
+      description: User has many reset tokens
+
+  business_rules:
+    - BR-001: Users must verify email within 24 hours of registration
+    - BR-002: Deleted users' emails cannot be reused for 30 days
+    - BR-003: User data must be retained for audit for 7 years

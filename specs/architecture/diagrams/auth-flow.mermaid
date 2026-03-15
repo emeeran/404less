@@ -1,0 +1,83 @@
+sequenceDiagram
+    participant U as User
+    participant C as Client
+    participant A as API Server
+    participant D as Database
+    participant E as Email Service
+
+    Note over U,E: Registration Flow (FEAT-001)
+
+    U->>C: Fill registration form
+    C->>A: POST /auth/register
+    A->>D: Check email exists
+    alt Email exists
+        A-->>C: 409 Email already exists
+        C-->>U: Show error
+    else Email available
+        A->>A: Hash password (bcrypt)
+        A->>D: Create user (unverified)
+        A->>A: Generate verification token
+        A->>D: Store token
+        A->>E: Send verification email
+        E-->>U: Email with verify link
+        A-->>C: 201 Registration successful
+        C-->>U: "Check your email"
+    end
+
+    Note over U,E: Email Verification
+
+    U->>C: Click verify link
+    C->>A: POST /auth/verify-email {token}
+    A->>D: Validate token
+    alt Token valid
+        A->>D: Mark email verified
+        A->>D: Invalidate token
+        A-->>C: 200 Email verified
+        C-->>U: "Email verified, you can login"
+    else Token invalid/expired
+        A-->>C: 400 Invalid token
+        C-->>U: Show error with resend option
+    end
+
+    Note over U,E: Login Flow (FEAT-002)
+
+    U->>C: Enter credentials
+    C->>A: POST /auth/login {email, password}
+    A->>D: Find user by email
+    alt User not found
+        A-->>C: 401 Invalid credentials
+    else User found
+        A->>A: Verify password
+        alt Password incorrect
+            A->>D: Record failed attempt
+            alt Attempts >= 5
+                A->>D: Lock account (15 min)
+            end
+            A-->>C: 401 Invalid credentials
+        else Password correct
+            alt Email not verified
+                A-->>C: 403 Email not verified
+            else Account locked
+                A-->>C: 423 Account locked
+            else All checks pass
+                A->>A: Generate JWT + refresh token
+                A->>D: Store session
+                A-->>C: 200 {access_token, refresh_token}
+                C->>C: Store tokens securely
+                C-->>U: Redirect to dashboard
+            end
+        end
+    end
+
+    Note over U,E: Token Refresh
+
+    C->>A: POST /auth/refresh {refresh_token}
+    A->>D: Validate refresh token
+    alt Valid
+        A->>A: Generate new access token
+        A-->>C: 200 {access_token}
+    else Invalid/expired
+        A-->>C: 401 Invalid token
+        C->>C: Clear tokens
+        C-->>U: Redirect to login
+    end

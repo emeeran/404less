@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make generate-scaffold:*)",
+      "Bash(find /home/em/code/wip/sdd-project -name *.py -path */tests/*)",
+      "Bash(make generate-tests:*)",
+      "Bash(.venv/bin/pytest tests/ -v --cov=src --cov-report=term-missing)",
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(PYTHONPATH=/home/em/code/wip/sdd-project .venv/bin/pytest tests/unit/auth/test_routes.py -v --tb=short)",
+      "Bash(PYTHONPATH=/home/em/code/wip/sdd-project .venv/bin/pytest tests/unit/auth/login/ -v --tb=short)"
+    ]
+  }
+}

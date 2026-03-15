@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/shared/email/templates.py
+# hypothesis_version: 6.151.9
+
+['password_reset.txt', 'verification.html', 'verification.txt']

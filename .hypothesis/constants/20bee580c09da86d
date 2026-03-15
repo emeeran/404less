@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/scanner/routes.py
+# hypothesis_version: 6.151.9
+
+[30.0, 256, 2048, '/', '/api/scans', '/{scan_id}', '/{scan_id}/export', '/{scan_id}/links', '/{scan_id}/stream', '10/hour', 'Content-Disposition', 'Scan not found', 'Scanner', 'completed', 'data', 'error', 'event', 'http://', 'https://', 'invalid_format', 'invalid_url', 'keepalive', 'message', 'not_found', 'scan_id', 'status', 'stopped', 'url']

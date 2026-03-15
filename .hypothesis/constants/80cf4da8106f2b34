@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/auth/registration/service.py
+# hypothesis_version: 6.151.9
+
+[255, 'Email is too long', 'Invalid email format', '[@$!%*?&]', '[A-Z]', '[a-z]', '\\d', 'email', 'email_exists', 'field', 'invalid_input', 'invalid_token', 'message', 'password', 'password_confirm', 'user_id']

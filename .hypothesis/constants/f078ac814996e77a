@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/auth/registration/routes.py
+# hypothesis_version: 6.151.9
+
+['/auth', '/register', '/verify-email', '5/hour', 'Auth', 'details', 'email_exists', 'error', 'invalid_input', 'message']

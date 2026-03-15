@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/auth/registration/__init__.py
+# hypothesis_version: 6.151.9
+
+['RegistrationError', 'register_user', 'router', 'verify_email']

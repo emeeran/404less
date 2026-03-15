@@ -1,0 +1,190 @@
+# CI/CD Pipeline for SDD Workflow
+# GitHub Actions workflow that validates specs before merge
+
+name: SDD Checks
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # Job 1: Spec Linting
+  spec-lint:
+    name: Spec Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install YAML linter
+        run: npm install -g yaml-lint
+
+      - name: Lint YAML specs
+        run: |
+          find specs/ -name "*.yaml" -o -name "*.yml" | xargs yamllint -d relaxed
+
+      - name: Validate spec structure
+        run: |
+          # Check all specs have required fields
+          for file in specs/features/*.yaml; do
+            echo "Checking $file..."
+            # Check for required fields: id, name, acceptance_criteria
+            grep -q "^  id:" "$file" || (echo "Missing 'id' in $file" && exit 1)
+            grep -q "^  name:" "$file" || (echo "Missing 'name' in $file" && exit 1)
+            grep -q "^  acceptance_criteria:" "$file" || (echo "Missing 'acceptance_criteria' in $file" && exit 1)
+          done
+
+  # Job 2: Spec Coverage
+  spec-coverage:
+    name: Spec Coverage Check
+    runs-on: ubuntu-latest
+    needs: spec-lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check test coverage
+        run: |
+          # Simple coverage check - count tests vs acceptance criteria
+          SPEC_COUNT=$(grep -r "id: AC-" specs/features/*.yaml | wc -l)
+          TEST_COUNT=$(find tests/ -name "*.py" -o -name "*.feature" | xargs grep -l "FEAT-" | wc -l)
+
+          echo "Acceptance criteria: $SPEC_COUNT"
+          echo "Test files with spec refs: $TEST_COUNT"
+
+          # Fail if coverage is below threshold
+          COVERAGE=$((TEST_COUNT * 100 / SPEC_COUNT))
+          echo "Coverage: $COVERAGE%"
+
+          if [ $COVERAGE -lt 80 ]; then
+            echo "::warning::Spec coverage below 80% threshold"
+          fi
+
+  # Job 3: Run Tests
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: spec-coverage
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-bdd
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+        run: |
+          alembic upgrade head || echo "No migrations"
+
+      - name: Run tests with coverage
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+        run: |
+          pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+
+  # Job 4: Compliance Check
+  compliance:
+    name: Implementation Compliance
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check spec references in code
+        run: |
+          # Verify all code files have spec references
+          echo "Checking spec annotations in implementation..."
+
+          # Count spec references in code
+          CODE_REFS=$(grep -r "@spec" src/ | wc -l)
+
+          if [ $CODE_REFS -eq 0 ]; then
+            echo "::warning::No spec references found in code"
+          else
+            echo "Found $CODE_REFS spec references in code"
+          fi
+
+  # Job 5: Security Scan
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+
+  # Job 6: Build
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [compliance, security]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t sdd-template:${{ github.sha }} .
+
+      - name: Push to registry (main only)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Would push to container registry"
+          # docker push registry/sdd-template:${{ github.sha }}
+
+  # Summary job
+  sdd-summary:
+    name: SDD Summary
+    runs-on: ubuntu-latest
+    needs: [spec-lint, spec-coverage, test, compliance, security]
+    if: always()
+    steps:
+      - name: Summary
+        run: |
+          echo "## SDD Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Spec Lint | ${{ needs.spec-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Spec Coverage | ${{ needs.spec-coverage.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Compliance | ${{ needs.compliance.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security.result }} |" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/scanner/sse.py
+# hypothesis_version: 6.151.9
+
+['Scan stopped by user', 'broken_links', 'checked_links', 'completed', 'current_url', 'data', 'depth', 'error', 'event', 'link_checked', 'message', 'progress', 'status', 'status_code', 'stopped', 'total_links', 'url']

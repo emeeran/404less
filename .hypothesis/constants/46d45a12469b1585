@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/auth/password_reset/service.py
+# hypothesis_version: 6.151.9
+
+['+00:00', 'Z', '[@$!%*?&]', '[A-Z]', '[a-z]', '\\d', 'expires_at', 'field', 'id', 'invalid_input', 'invalid_token', 'message', 'new_password', 'password_hash', 'password_reuse', 'used_at', 'user_id']

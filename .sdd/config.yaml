@@ -1,0 +1,105 @@
+# SDD Configuration
+# Controls how SDD tools interact with this project
+
+project:
+  name: sdd-template
+  version: 0.1.0
+
+# Spec discovery
+specs:
+  directory: specs
+  features_glob: "specs/features/*.yaml"
+  domain_glob: "specs/domain/*.yaml"
+  index_file: specs/index.yaml
+
+# Code generation
+generation:
+  source_dir: src
+  tests_dir: tests
+  contracts_dir: contracts
+  docs_dir: docs
+
+  # Language-specific settings
+  python:
+    models_dir: contracts/python/models
+    use_pydantic: true
+    pydantic_version: 2
+
+  typescript:
+    models_dir: contracts/typescript/src
+    use_zod: true
+
+# Spec annotations in code
+annotations:
+  format: "@spec {spec_id}"
+  link_format: "@spec {spec_id}/{requirement_id}"
+
+  # Where to place annotations
+  module_header: true  # At top of file
+  class_level: true    # Above classes
+  function_level: true # Above functions
+
+# Coverage tracking
+coverage:
+  enabled: true
+  min_threshold: 80
+  report_file: .sdd/coverage-matrix.yaml
+
+  # What to track
+  track:
+    acceptance_criteria: true
+    edge_cases: true
+    constraints: false
+    api_endpoints: true
+
+# Compliance checking
+compliance:
+  enabled: true
+  check_on:
+    - pre_commit
+    - ci
+
+  # Fail if:
+  fail_on:
+    missing_implementation: true
+    missing_tests: true
+    spec_drift: true
+
+# Linting
+lint:
+  enabled: true
+  rules:
+    require_acceptance_criteria: true
+    min_edge_cases: 2
+    require_constraints: true
+    require_api_endpoints: true
+    no_ambiguous_terms:
+      - "fast"
+      - "slow"
+      - "user-friendly"
+      - "good"
+      - "nice to have"
+
+# Documentation generation
+docs:
+  output_dir: docs
+  include:
+    features: true
+    api: true
+    architecture: true
+
+  formats:
+    - markdown
+    - html
+
+# Version control integration
+git:
+  # Branch naming
+  spec_branch_prefix: "specs/"
+  feature_branch_prefix: "feature/"
+
+  # Commit message format
+  commit_format: "{type}({scope}): {message} [{spec_id}]"
+
+  # Auto-reference specs in commits
+  reference_specs: true

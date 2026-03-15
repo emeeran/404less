@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/scanner/robots.py
+# hypothesis_version: 6.151.9
+
+[200, 300, '#', '$', '*', '/', ':', 'allow', 'disallow', 'user-agent']
