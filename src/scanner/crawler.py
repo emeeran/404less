@@ -17,6 +17,15 @@ from uuid import UUID
 
 import httpx
 
+from src.shared.config import (
+    DEFAULT_USER_AGENT,
+    CRAWLER_MAX_CONCURRENT,
+    CRAWLER_MIN_DELAY,
+    CRAWLER_TIMEOUT,
+    CRAWLER_MAX_REDIRECTS,
+)
+
+from .error_handlers import classify_httpx_error, create_crawl_error_result
 from .robots import RobotsChecker
 
 
@@ -91,11 +100,11 @@ class LinkExtractor(HTMLParser):
 @dataclass
 class CrawlerConfig:
     """Configuration for the crawler."""
-    max_concurrent: int = 5  # @spec FEAT-001/C-001
-    min_delay: float = 0.1  # @spec FEAT-001/C-001 - 100ms minimum delay
-    timeout: int = 30  # @spec FEAT-001 - 30 second timeout
-    max_redirects: int = 10  # @spec FEAT-001/EC-001
-    user_agent: str = "404less/0.1.0 (+https://github.com/user/404less)"  # @spec FEAT-001/C-006
+    max_concurrent: int = CRAWLER_MAX_CONCURRENT  # @spec FEAT-001/C-001
+    min_delay: float = CRAWLER_MIN_DELAY  # @spec FEAT-001/C-001 - 100ms minimum delay
+    timeout: int = CRAWLER_TIMEOUT  # @spec FEAT-001 - 30 second timeout
+    max_redirects: int = CRAWLER_MAX_REDIRECTS  # @spec FEAT-001/EC-001
+    user_agent: str = DEFAULT_USER_AGENT  # @spec FEAT-001/C-006
 
 
 class AsyncCrawler:
@@ -273,14 +282,13 @@ class AsyncCrawler:
 
         except httpx.ConnectError as e:
             # @spec FEAT-001/EC-010 - SSL and connection errors
-            error_str = str(e).lower()
-            if "ssl" in error_str or "certificate" in error_str:
-                error = "ssl_error"
-            else:
-                error = "connection_refused"
+            error_code, error_message = classify_httpx_error(e)
             return CrawlResult(
-                url=url, status="broken", error=error,
-                depth=depth, parent_url=parent_url
+                url=url,
+                status="broken",
+                error=error_code,
+                depth=depth,
+                parent_url=parent_url,
             )
 
         except httpx.ConnectTimeout:
@@ -298,9 +306,13 @@ class AsyncCrawler:
             )
 
         except Exception as e:
+            error_type, error_message = classify_httpx_error(e)
             return CrawlResult(
-                url=url, status="broken", error=str(e)[:100],
-                depth=depth, parent_url=parent_url
+                url=url,
+                status="broken",
+                error=error_type,
+                depth=depth,
+                parent_url=parent_url,
             )
 
     def extract_links(self, html: str, base_url: str) -> Set[str]:

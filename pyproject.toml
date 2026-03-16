@@ -29,6 +29,9 @@ dev = [
     "black>=24.0.0",
     "mypy>=1.8.0",
     "hypothesis>=6.92.0",
+    "bandit>=1.7.0",
+    "vulture>=2.11",
+    "pre-commit>=3.6.0",
 ]
 
 [tool.ruff]

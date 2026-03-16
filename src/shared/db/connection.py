@@ -107,3 +107,34 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     async with get_db_session() as session:
         yield session
+
+
+@asynccontextmanager
+async def get_background_session() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Context manager for background task database sessions.
+
+    Provides isolated session management for background tasks like
+    crawler callbacks. Each call creates a new session that is
+    properly committed or rolled back.
+
+    This is preferred over raw AsyncSessionLocal() usage because it
+    ensures proper cleanup and error handling.
+
+    Usage:
+        async with get_background_session() as session:
+            repo = ScanRepository(session)
+            await repo.update_status(scan_id, "completed")
+            # Auto-commits on success, rolls back on exception
+
+    @spec FEAT-001 - Background session management
+    """
+    session = AsyncSessionLocal()
+    try:
+        yield session
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
+    finally:
+        await session.close()

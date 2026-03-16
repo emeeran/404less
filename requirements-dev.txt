@@ -1,0 +1,13 @@
+# Development dependencies
+# @spec Shared infrastructure - development dependencies
+
+-r requirements.txt
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0
+ruff>=0.1.0
+black>=24.0.0
+mypy>=1.8.0
+hypothesis>=6.92.0
+bandit>=1.7.0
+vulture>=2.11

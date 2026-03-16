@@ -1,0 +1,35 @@
+# Docker Compose for local development
+# @spec Shared infrastructure - development environment
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=sqlite+aiosqlite:////app/sdd.db
+      - JWT_SECRET_KEY=dev-secret-key-DO-NOT-USE-IN-PRODUCTION
+    volumes:
+      - app-data:/app/data
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=sdd
+      - POSTGRES_PASSWORD=sdd_dev_password
+      - POSTGRES_DB=sdd
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["pg_isready", "-U", "sdd"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  app-data:
+  db-data:

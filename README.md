@@ -195,3 +195,42 @@ The `.github/workflows/sdd-checks.yaml` pipeline runs:
 - [SDD Workflow Guide](../spec_workflow.md)
 - [Spec Index](specs/index.yaml)
 - [Coverage Matrix](.sdd/coverage-matrix.yaml)
+
+## Architecture
+
+### Core Modules
+
+| Module | Purpose |
+|--------|---------|
+| `src/shared/config.py` | Centralized configuration constants |
+| `src/shared/decorators.py` | Error handling decorators for routes |
+| `src/shared/db/connection.py` | Database session management |
+| `src/shared/email/template_engine.py` | Abstract template rendering |
+| `src/scanner/crawler_registry.py` | Crawler dependency injection |
+| `src/scanner/error_handlers.py` | HTTP error classification |
+
+### Design Patterns
+
+- **Registry Pattern**: `CrawlerRegistry` for injectable crawler management
+- **Decorator Pattern**: `@handle_service_errors` for route error handling
+- **Strategy Pattern**: `TemplateEngine` abstraction for email templates
+- **Context Manager**: `get_background_session()` for database sessions
+
+### Configuration
+
+Environment variables (see `src/shared/config.py`):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CRAWLER_MAX_CONCURRENT` | 5 | Max concurrent requests |
+| `CRAWLER_MIN_DELAY` | 0.1 | Min delay between requests (seconds) |
+| `CRAWLER_TIMEOUT` | 30 | HTTP timeout (seconds) |
+| `CRAWLER_MAX_REDIRECTS` | 10 | Max redirect hops |
+| `CRAWLER_MAX_DEPTH` | 10 | Max crawl depth |
+
+### Frontend Architecture
+
+The frontend (`static/app.js`) is a single-page application using:
+- Server-Sent Events (SSE) for real-time updates
+- Native browser APIs (no framework dependencies)
+- Modular structure under `static/modules/`

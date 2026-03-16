@@ -272,7 +272,8 @@ class TestExportScanEndpoint:
         response = client.get(f"/api/scans/{scan_id}/export?format=csv")
 
         assert response.status_code == 200
-        assert response.headers["content-type"] == "text/csv"
+        # Content-Type may include charset, so use 'in' check
+        assert "text/csv" in response.headers["content-type"]
 
     @patch("src.scanner.routes.get_db")
     @patch("src.scanner.routes.ScanService")

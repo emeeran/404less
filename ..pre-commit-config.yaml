@@ -1,0 +1,62 @@
+# Pre-commit configuration
+# @spec Shared infrastructure - code quality gates
+# See https://pre-commit.com for more information
+
+repos:
+  - repo: local
+  - repo: https://github.com/psf/black
+  - repo: https://github.com/psf/black-pre-commit-mirror-action
+
+# Python hooks
+- id: ruff-check
+  name: Run Ruff
+  entry:: ruff check . --fix
+  files: \.(git|svg|json|yaml|)$
+      (?x
+          ^.venv/
+          ^.git/
+          __pycache__
+          .pytest_cache
+          .mypy_cache
+          htmlcov
+          .coverage
+          *.egg-info
+          trash2review
+      )^$
+
+  - id: ruff-format
+  name: Run Ruff format
+  entry:: ruff format .
+  files: \.(git|svg|json|yaml|)$
+
+  - id: black-check
+  name: Run Black
+  entry:: black .
+  files: \.(git|svg|json|yaml|)$
+
+  - id: mypy-check
+  name: Run MyPy
+  entry:: mypy src/
+  files: \src/\.py
+    pass: [mypy --config-file pyproject.toml]
+
+  - id: check-added-large-files
+  name: Check for large files
+  entry:: check-added-large-files --enforce-maxkb 1000
+  args: ['--maxkb=100']
+    files: git add
+  stages: [manual]
+
+# Security hooks
+  - id: bandit-check
+  name:Run Bandit security scan
+  entry:: bandit -r src/ -ll
+  files: \src/\.py
+
+  - id: no-commit-to-main
+  name: Prevent committing to main
+  entry:: no-commit-to-main
+  stages: [push]
+
+# Keep: pre-commit cache directory
+  - repo: local

@@ -16,6 +16,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.shared.config import DEFAULT_USER_AGENT
 from src.shared.db.connection import AsyncSessionLocal
 
 from .crawler import AsyncCrawler, CrawlResult, CrawlerConfig
@@ -79,7 +80,7 @@ class ScanService:
         depth = max(1, min(depth, 10))
 
         # Build user agent
-        final_user_agent = user_agent or "404less/0.1.0 (+https://github.com/user/404less)"
+        final_user_agent = user_agent or DEFAULT_USER_AGENT
 
         # Create scan record
         scan = await self.scan_repo.create(
@@ -124,7 +125,7 @@ class ScanService:
 
             # Setup crawler
             robots_checker = RobotsChecker() if scan.respect_robots else None
-            config = CrawlerConfig(user_agent=scan.user_agent or "404less/0.1.0")
+            config = CrawlerConfig(user_agent=scan.user_agent or DEFAULT_USER_AGENT)
 
             crawler = AsyncCrawler(
                 scan_id=scan.id,

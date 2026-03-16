@@ -13,6 +13,25 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
+# ============================================================================
+# Application Constants
+# ============================================================================
+
+APP_NAME = "404less"
+APP_VERSION = "0.1.0"
+DEFAULT_USER_AGENT = f"{APP_NAME}/{APP_VERSION} (+https://github.com/user/404less)"
+
+# ============================================================================
+# Crawler Configuration (with environment overrides)
+# ============================================================================
+
+CRAWLER_MAX_CONCURRENT = int(os.environ.get("CRAWLER_MAX_CONCURRENT", "5"))
+CRAWLER_MIN_DELAY = float(os.environ.get("CRAWLER_MIN_DELAY", "0.1"))
+CRAWLER_TIMEOUT = int(os.environ.get("CRAWLER_TIMEOUT", "30"))
+CRAWLER_MAX_REDIRECTS = int(os.environ.get("CRAWLER_MAX_REDIRECTS", "10"))
+CRAWLER_MAX_DEPTH = int(os.environ.get("CRAWLER_MAX_DEPTH", "10"))
+
+
 class ConfigError(Exception):
     """Raised when configuration is invalid or missing required values."""
 

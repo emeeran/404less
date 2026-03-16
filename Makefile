@@ -134,6 +134,11 @@ clean:
 	find . -type d -name "*.egg-info" -exec rm -rf {} +
 	rm -rf .coverage htmlcov/ .mypy_cache/
 
+# Security
+security-scan:
+	$(PYTHON) -m bandit -r src/ -ll
+	$(PYTHON) -m vulture src/ --min-confidence 80
+
 # Docker
 docker-build:
 	docker build -t sdd-template:latest .
