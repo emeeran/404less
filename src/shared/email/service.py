@@ -6,10 +6,13 @@ Email Service Module
 Provides async email sending with template support.
 """
 
+import logging
 import os
 from abc import ABC, abstractmethod
 from typing import Optional
 from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -36,21 +39,20 @@ class ConsoleEmailBackend(EmailBackend):
     """
     Console email backend for development.
 
-    Prints emails to console instead of sending.
+    Logs emails instead of sending.
     """
 
     async def send(self, message: EmailMessage) -> bool:
-        """Print email to console."""
-        print("\n" + "=" * 60)
-        print(f"To: {message.to}")
-        print(f"From: {message.from_email or 'noreply@example.com'}")
-        print(f"Subject: {message.subject}")
-        print("-" * 60)
-        print(message.body)
+        """Log email to console."""
+        logger.info(
+            "Email to=%s from=%s subject=%s",
+            message.to,
+            message.from_email or "noreply@example.com",
+            message.subject,
+        )
+        logger.debug("Email body: %s", message.body)
         if message.html_body:
-            print("\n[HTML Body]:")
-            print(message.html_body)
-        print("=" * 60 + "\n")
+            logger.debug("Email HTML body: %s", message.html_body)
         return True
 
 
@@ -77,27 +79,51 @@ class SMTPEmailBackend(EmailBackend):
 
     async def send(self, message: EmailMessage) -> bool:
         """Send email via SMTP."""
-        # TODO: Implement actual SMTP sending with aiosmtplib
-        # import aiosmtplib
-        # from email.message import EmailMessage as SMTPMessage
-        #
-        # msg = SMTPMessage()
-        # msg["From"] = message.from_email or "noreply@example.com"
-        # msg["To"] = message.to
-        # msg["Subject"] = message.subject
-        # msg.set_content(message.body)
-        # if message.html_body:
-        #     msg.add_alternative(message.html_body, subtype="html")
-        #
-        # await aiosmtplib.send(
-        #     msg,
-        #     hostname=self.host,
-        #     port=self.port,
-        #     username=self.username,
-        #     password=self.password,
-        #     start_tls=self.use_tls,
-        # )
-        raise NotImplementedError("SMTP backend not yet implemented")
+        import aiosmtplib
+        from email.message import EmailMessage as SMTPMessage
+        from email.utils import formataddr
+
+        msg = SMTPMessage()
+        from_email = message.from_email or "noreply@example.com"
+        msg["From"] = formataddr(("404less", from_email))
+        msg["To"] = message.to
+        msg["Subject"] = message.subject
+        msg.set_content(message.body)
+
+        if message.html_body:
+            msg.add_alternative(message.html_body, subtype="html")
+
+        try:
+            await aiosmtplib.send(
+                msg,
+                hostname=self.host,
+                port=self.port,
+                username=self.username,
+                password=self.password,
+                start_tls=self.use_tls,
+            )
+            logger.info(
+                "Email sent successfully to=%s subject=%s",
+                message.to,
+                message.subject,
+            )
+            return True
+        except aiosmtplib.SMTPException as e:
+            logger.error(
+                "SMTP error sending email to=%s: %s",
+                message.to,
+                str(e),
+                exc_info=True,
+            )
+            return False
+        except Exception as e:
+            logger.error(
+                "Unexpected error sending email to=%s: %s",
+                message.to,
+                str(e),
+                exc_info=True,
+            )
+            return False
 
 
 class EmailService:

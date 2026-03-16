@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Request, status, Body
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
+from src.shared.config import RATE_LIMIT_PASSWORD_RESET
 from .service import (
     request_password_reset,
     confirm_password_reset,
@@ -33,7 +34,7 @@ class PasswordResetConfirmRequest(BaseModel):
 
 
 @router.post("/request")
-@limiter.limit("3/hour")  # @spec FEAT-003/C-004 - Rate limit 3 per hour per email
+@limiter.limit(RATE_LIMIT_PASSWORD_RESET)  # @spec FEAT-003/C-004 - Configurable rate limit
 async def request_reset(request: Request, body: PasswordResetRequest = Body(...)):
     """
     Request a password reset email.
