@@ -1,7 +1,7 @@
 """
 Scanner Module
 
-@spec FEAT-001 - 404less Broken Link Scanner
+@spec FEAT-001 - 404scout Broken Link Scanner
 
 A web application that recursively scans websites for broken links
 with real-time SSE updates.

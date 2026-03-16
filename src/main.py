@@ -1,5 +1,5 @@
 """
-404less - Broken Link Scanner
+404scout - Broken Link Scanner
 
 Main application entry point.
 
@@ -108,7 +108,7 @@ async def lifespan(app: FastAPI):
 
 # Create application
 app = FastAPI(
-    title="404less",
+    title="404scout",
     description="Broken Link Scanner - Find broken links before your users do",
     version="0.1.0",
     lifespan=lifespan,

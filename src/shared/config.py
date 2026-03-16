@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 # Application Constants
 # ============================================================================
 
-APP_NAME = "404less"
+APP_NAME = "404scout"
 APP_VERSION = "0.1.0"
-DEFAULT_USER_AGENT = f"{APP_NAME}/{APP_VERSION} (+https://github.com/user/404less)"
+DEFAULT_USER_AGENT = f"{APP_NAME}/{APP_VERSION} (+https://github.com/user/404scout)"
 
 # ============================================================================
 # Crawler Configuration (with environment overrides)

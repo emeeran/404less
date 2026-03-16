@@ -1,5 +1,5 @@
 /**
- * 404less - Broken Link Scanner
+ * 404scout - Broken Link Scanner
  *
  * @spec FEAT-001 - Frontend SPA
  * @spec FEAT-001/AC-008 - Minimalist UI < 50KB gzipped

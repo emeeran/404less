@@ -1,6 +1,6 @@
 spec:
   id: FEAT-001
-  name: "404less"
+  name: "404scout"
   version: 0.1.0
   status: draft
   author: @em
@@ -368,7 +368,7 @@ spec:
     - UI framework: vanilla JS or lightweight library (< 10KB) to maintain minimal bundle size
     - Consider SQLite for storage (lightweight, sufficient for single-user usage)
     - Use robots.txt parsing library appropriate to chosen tech stack
-    - User-Agent format: "404less/0.1.0 (+https://github.com/user/404less)"
+    - User-Agent format: "404scout/0.1.0 (+https://github.com/user/404scout)"
     - HTTP request timeout: 30 seconds per request
     - Redirect limit: 10 hops before marking as broken
 

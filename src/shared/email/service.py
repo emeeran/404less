@@ -85,7 +85,7 @@ class SMTPEmailBackend(EmailBackend):
 
         msg = SMTPMessage()
         from_email = message.from_email or "noreply@example.com"
-        msg["From"] = formataddr(("404less", from_email))
+        msg["From"] = formataddr(("404scout", from_email))
         msg["To"] = message.to
         msg["Subject"] = message.subject
         msg.set_content(message.body)
