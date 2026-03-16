@@ -20,6 +20,7 @@ class ScannerApp {
             respectRobots: document.getElementById('respect-robots'),
             scanBtn: document.getElementById('scan-btn'),
             stopBtn: document.getElementById('stop-btn'),
+            refreshBtn: document.getElementById('refresh-btn'),
             urlError: document.getElementById('url-error'),
             progressSection: document.getElementById('progress-section'),
             totalLinks: document.getElementById('total-links'),
@@ -50,6 +51,9 @@ class ScannerApp {
 
         // Stop button
         this.elements.stopBtn.addEventListener('click', () => this.stopScan());
+
+        // Manual refresh
+        this.elements.refreshBtn.addEventListener('click', () => this.refreshScanData());
 
         // Filter change
         this.elements.statusFilter.addEventListener('change', (e) => {
@@ -126,6 +130,7 @@ class ScannerApp {
             }
 
             this.scanId = payload.scan_id;
+            this.elements.refreshBtn.disabled = false;
 
             // Show progress section
             this.elements.progressSection.classList.remove('hidden');
@@ -210,6 +215,30 @@ class ScannerApp {
     }
 
     /**
+     * Update summary cards from a scan status response.
+     */
+    updateScanSummary(data) {
+        this.elements.totalLinks.textContent = data.total_links || 0;
+        this.elements.checkedLinks.textContent = data.checked_links || 0;
+        this.elements.brokenLinks.textContent = data.broken_links || 0;
+
+        const percentage = data.total_links > 0
+            ? (data.checked_links / data.total_links) * 100
+            : 0;
+        this.elements.progressFill.style.width = `${Math.min(percentage, 100)}%`;
+
+        const statusMessages = {
+            pending: 'Scan queued',
+            running: 'Scan is running',
+            completed: 'Scan completed!',
+            stopped: 'Scan stopped',
+            failed: 'Scan failed',
+        };
+
+        this.elements.currentUrl.textContent = statusMessages[data.status] || 'Scan updated';
+    }
+
+    /**
      * Handle scan completion
      * @spec FEAT-001/AC-002 - Display final report
      */
@@ -264,6 +293,53 @@ class ScannerApp {
         }
 
         this.elements.stopBtn.textContent = 'Stop Scan';
+    }
+
+    /**
+     * Refresh the latest scan status and currently visible results.
+     */
+    async refreshScanData() {
+        if (!this.scanId) return;
+
+        this.elements.urlError.textContent = '';
+        const originalLabel = this.elements.refreshBtn.textContent;
+        this.elements.refreshBtn.disabled = true;
+        this.elements.refreshBtn.textContent = 'Refreshing...';
+
+        try {
+            const response = await fetch(`/api/scans/${this.scanId}`);
+            const payload = await this.parseResponsePayload(response);
+
+            if (!response.ok) {
+                throw new Error(this.getErrorMessage(payload, 'Failed to refresh scan'));
+            }
+
+            this.elements.progressSection.classList.remove('hidden');
+            this.updateScanSummary(payload);
+
+            if (payload.status === 'completed') {
+                this.onScanCompleted(payload);
+                return;
+            }
+
+            if (payload.status === 'stopped' || payload.status === 'failed') {
+                this.onScanStopped();
+                if (payload.status === 'failed') {
+                    this.elements.urlError.textContent = 'Scan failed';
+                }
+                return;
+            }
+
+            if (!this.elements.resultsSection.classList.contains('hidden')) {
+                await this.loadLinks();
+            }
+        } catch (error) {
+            console.error('Failed to refresh scan:', error);
+            this.elements.urlError.textContent = error.message;
+        } finally {
+            this.elements.refreshBtn.disabled = !this.scanId;
+            this.elements.refreshBtn.textContent = originalLabel;
+        }
     }
 
     /**
@@ -403,6 +479,7 @@ class ScannerApp {
         this.elements.totalLinks.textContent = '0';
         this.elements.checkedLinks.textContent = '0';
         this.elements.brokenLinks.textContent = '0';
+        this.elements.refreshBtn.disabled = true;
         this.currentPage = 1;
     }
 

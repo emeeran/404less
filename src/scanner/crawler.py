@@ -20,6 +20,11 @@ import httpx
 from .robots import RobotsChecker
 
 
+# Pre-compiled regex patterns for XSS sanitization
+# @spec FEAT-001/C-004 - Compiled once at module load
+_XSS_PATTERN = re.compile(r'[<>"\']')
+
+
 @dataclass
 class CrawlResult:
     """

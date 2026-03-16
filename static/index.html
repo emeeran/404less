@@ -65,13 +65,18 @@
                         <button type="button" id="stop-btn" class="btn-danger" disabled>
                             Stop Scan
                         </button>
+                        <button type="button" id="refresh-btn" class="btn-secondary" disabled>
+                            Refresh
+                        </button>
                     </div>
                 </form>
             </section>
 
             <!-- @spec FEAT-001/AC-002 - Real-time scan progress -->
             <section id="progress-section" class="card hidden">
-                <h2>Scan Progress</h2>
+                <div class="progress-header">
+                    <h2>Scan Progress</h2>
+                </div>
                 <div class="progress-stats">
                     <div class="stat">
                         <span class="stat-label">Total Links</span>
@@ -125,7 +130,7 @@
         </main>
 
         <footer>
-            <p>404less v0.1.0 &mdash; <a href="https://github.com/user/404less">GitHub</a></p>
+            <p>404less v0.1.0 &mdash; A Dawnstar Product</p>
         </footer>
     </div>
 
