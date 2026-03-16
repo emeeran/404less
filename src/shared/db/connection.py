@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
     async_sessionmaker,
 )
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import NullPool, QueuePool
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +26,43 @@ logger = logging.getLogger(__name__)
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./sdd.db")
 DB_REQUIRED = os.getenv("DB_REQUIRED", "false").lower() == "true"
 
+
+def _is_production() -> bool:
+    """Check if running in production environment."""
+    return os.getenv("ENVIRONMENT", "development").lower() == "production"
+
+
+def _get_pool_config() -> dict:
+    """Get connection pool configuration based on environment."""
+    if DATABASE_URL.startswith("sqlite"):
+        # SQLite doesn't support connection pooling
+        return {"poolclass": NullPool}
+
+    if _is_production():
+        # Production PostgreSQL: use QueuePool with configurable settings
+        return {
+            "poolclass": QueuePool,
+            "pool_size": int(os.getenv("DB_POOL_SIZE", "10")),
+            "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", "20")),
+            "pool_timeout": int(os.getenv("DB_POOL_TIMEOUT", "30")),
+            "pool_recycle": int(os.getenv("DB_POOL_RECYCLE", "3600")),
+            "pool_pre_ping": True,  # Verify connections before use
+        }
+    else:
+        # Development: simple pooling for PostgreSQL
+        return {
+            "poolclass": QueuePool,
+            "pool_size": 5,
+            "max_overflow": 10,
+            "pool_pre_ping": True,
+        }
+
+
 # Engine configuration
 engine: AsyncEngine = create_async_engine(
     DATABASE_URL,
     echo=os.getenv("SQL_ECHO", "false").lower() == "true",
-    poolclass=NullPool,  # For serverless/async contexts
+    **_get_pool_config(),
 )
 
 # Session factory
@@ -51,14 +83,20 @@ async def init_db() -> None:
     """
     from src.shared.db.models import Base
 
+    pool_config = _get_pool_config()
+    pool_type = pool_config.get("poolclass", NullPool).__name__
+    logger.info("Initializing database connection (pool type: %s)", pool_type)
+
     # Validate connection at startup. In local/dev environments, allow
     # startup without a database unless explicitly required.
     try:
         async with engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
             await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database connection established successfully")
     except Exception as exc:
         if DB_REQUIRED:
+            logger.error("Database connection failed: %s", exc)
             raise
         logger.warning(
             "Database is unavailable at startup; continuing in degraded mode. "
@@ -138,3 +176,53 @@ async def get_background_session() -> AsyncGenerator[AsyncSession, None]:
         raise
     finally:
         await session.close()
+
+
+def get_pool_status() -> dict:
+    """
+    Get current connection pool status.
+
+    Returns pool statistics for monitoring and health checks.
+    """
+    pool = engine.pool
+
+    if isinstance(pool, NullPool):
+        return {
+            "type": "NullPool",
+            "connected": False,
+            "message": "Connection pooling not enabled (SQLite or NullPool)",
+        }
+
+    return {
+        "type": "QueuePool",
+        "size": pool.size(),
+        "checked_in": pool.checkedin(),
+        "checked_out": pool.checkedout(),
+        "overflow": pool.overflow(),
+        "invalid": pool.invalidatedcount() if hasattr(pool, "invalidatedcount") else 0,
+    }
+
+
+async def check_db_health() -> dict:
+    """
+    Check database connectivity and return health status.
+
+    Used by health check endpoints to verify database is responsive.
+    """
+    try:
+        async with engine.begin() as conn:
+            result = await conn.execute(text("SELECT 1"))
+            result.fetchone()
+
+        pool_status = get_pool_status()
+        pool_status["connected"] = True
+        pool_status["latency_ms"] = None  # Could add timing if needed
+
+        return pool_status
+    except Exception as e:
+        logger.error("Database health check failed: %s", e)
+        return {
+            "connected": False,
+            "error": str(e),
+            "type": "error",
+        }

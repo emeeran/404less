@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Request, status, Body
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
+from src.shared.config import RATE_LIMIT_REGISTER
 from .service import register_user, verify_email, RegistrationError
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -30,7 +31,7 @@ class VerifyEmailRequest(BaseModel):
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-@limiter.limit("5/hour")  # @spec FEAT-001/C-005 - Rate limit 5 per hour per IP
+@limiter.limit(RATE_LIMIT_REGISTER)  # @spec FEAT-001/C-005 - Configurable rate limit
 async def register(request: Request, body: RegisterRequest = Body(...)):
     """
     Register a new user.

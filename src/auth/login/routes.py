@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Request, status, Body
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
+from src.shared.config import RATE_LIMIT_LOGIN
 from .service import (
     authenticate_user,
     refresh_access_token,
@@ -39,7 +40,7 @@ class LogoutRequest(BaseModel):
 
 
 @router.post("/login")
-@limiter.limit("20/minute")  # @spec FEAT-002/C-005 - Rate limit 20 per minute per IP
+@limiter.limit(RATE_LIMIT_LOGIN)  # @spec FEAT-002/C-005 - Configurable rate limit
 async def login(request: Request, body: LoginRequest = Body(...)):
     """
     Authenticate user and return tokens.

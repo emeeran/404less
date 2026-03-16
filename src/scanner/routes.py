@@ -17,6 +17,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.shared.config import RATE_LIMIT_SCAN_CREATE
 from src.shared.db.connection import get_db
 
 from .service import ScanService, ScanError
@@ -75,7 +76,7 @@ class ScanStatusResponse(BaseModel):
 # ============================================================================
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-@limiter.limit("10/hour")
+@limiter.limit(RATE_LIMIT_SCAN_CREATE)
 async def create_scan(
     request: Request,
     scan_request: ScanCreateRequest,
