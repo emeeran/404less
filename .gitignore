@@ -2,3 +2,51 @@
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
+
+# Environment files (never commit secrets!)
+.env
+.env.local
+*.local.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.html
+.venv/
+*.egg
+
+*.egg-info/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+*.swo
+*.swo.bin
+
+# Testing
+.pytest_cache/
+.coverage
+.hypothesis/
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
