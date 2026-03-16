@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/shared/db/connection.py
+# hypothesis_version: 6.151.9
+
+['DATABASE_URL', 'DB_REQUIRED', 'SELECT 1', 'SQL_ECHO', 'false', 'true']

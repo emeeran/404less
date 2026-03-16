@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/main.py
+# hypothesis_version: 6.151.9
+
+[500, 503, '/', '/health', '/static', '0.1.0', '1; mode=block', '404less', 'DENY', 'Permissions-Policy', 'Referrer-Policy', 'X-Frame-Options', 'X-XSS-Protection', 'database_unavailable', 'detail', 'error', 'internal_error', 'message', 'nosniff', 'ok', 'static', 'static/index.html', 'status']

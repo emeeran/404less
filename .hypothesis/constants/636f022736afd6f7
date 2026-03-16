@@ -1,0 +1,4 @@
+# file: /home/em/code/wip/sdd-project/src/scanner/repository.py
+# hypothesis_version: 6.151.9
+
+[256, 512, 2048, 'completed', 'depth', 'failed', 'idx_links_scan_depth', 'links', 'pending', 'running', 'scan_id', 'scans', 'status', 'stopped']

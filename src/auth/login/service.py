@@ -7,13 +7,14 @@ User Login Service
 @constraints C-001, C-002, C-003, C-004, C-005, C-006
 """
 
-import os
 from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
 from typing import Optional
 
 import bcrypt
 import jwt
+
+from src.shared.config import JWT_SECRET_KEY, JWT_ALGORITHM
 
 # ============================================================================
 # Configuration Constants
@@ -30,10 +31,6 @@ ACCESS_TOKEN_EXPIRY_HOURS = 1
 
 # @spec FEAT-002/C-004 - Refresh token with 7-day expiry
 REFRESH_TOKEN_EXPIRY_DAYS = 7
-
-# JWT Configuration
-JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "dev-secret-key-change-in-production")
-JWT_ALGORITHM = "HS256"
 
 
 # ============================================================================
